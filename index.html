@@ -1989,10 +1989,57 @@
                 font-size: 1.1rem;
             }
         }
+
+        /* 跳過動畫按鈕 */
+        .skip-animation-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(100, 255, 100, 0.4);
+            border-radius: 25px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            z-index: 150;
+            transition: all 0.3s ease;
+            display: none;
+            /* 初始隱藏 */
+        }
+
+        .skip-animation-btn.show {
+            display: block;
+        }
+
+        .skip-animation-btn:hover {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: rgba(100, 255, 100, 0.6);
+            color: rgba(100, 255, 100, 1);
+            transform: translateX(-50%) translateY(-3px);
+            box-shadow: 0 5px 15px rgba(100, 255, 100, 0.3);
+        }
+
+        .skip-animation-btn:active {
+            transform: translateX(-50%) translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .skip-animation-btn {
+                bottom: 15px;
+                padding: 0.5rem 1.2rem;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <!-- 跳過動畫按鈕 -->
+    <button class="skip-animation-btn" id="skipAnimationBtn">⏭ 跳過動畫</button>
     <main>
         <!-- CH1: 奔跑場景 -->
         <section id="scene-running" class="scene active">
@@ -2404,6 +2451,69 @@
 
 
     <script>
+         // ==========================================
+        // 跳過動畫功能
+        // ==========================================
+        let skipBtn = null;
+        let isAnimationSkipped = false;
+
+        function initSkipButton() {
+            skipBtn = document.getElementById("skipAnimationBtn");
+
+            // 檢查是否已填過名字和生日
+            const name = localStorage.getItem(NAME_KEY);
+            const birthday = localStorage.getItem(BDAY_KEY);
+
+            if (name && birthday) {
+                // ✅ 已填完名字和生日 - 顯示按鈕
+                skipBtn.textContent = "⏭ 跳過動畫";
+                skipBtn.classList.add("show");
+            } else {
+                // ❌ 未填完 - 隱藏按鈕
+                skipBtn.classList.remove("show");
+            }
+
+            // 點擊跳過
+            skipBtn.addEventListener("click", skipToHome);
+        }
+
+        function skipToHome() {
+            if (isAnimationSkipped) return;
+
+            // ✅ 檢查是否已經填寫名字和生日
+            const name = localStorage.getItem(NAME_KEY);
+            const birthday = localStorage.getItem(BDAY_KEY);
+
+            if (!name || !birthday) {
+                // ❌ 資料不完整 - 隱藏按鈕（理論上不會執行到這裡）
+                skipBtn.classList.remove("show");
+                return;
+            }
+
+            // ✅ 資料完整 - 允許跳過
+            isAnimationSkipped = true;
+
+            // 隱藏所有場景
+            document.querySelectorAll(".scene").forEach(s => s.classList.remove("active"));
+
+            // 直接顯示寵物首頁
+            const homeScene = document.getElementById("scene-pet-home");
+            homeScene.classList.add("active");
+
+            // 隱藏跳過按鈕
+            skipBtn.classList.remove("show");
+
+            // 初始化寵物首頁
+            checkBackgroundImage();
+            startCelebrationFireworks();
+            initializePetHome();
+        }
+
+        function hideSkipButton() {
+            if (skipBtn) {
+                skipBtn.classList.remove("show");
+            }
+        }
         // ==========================================
         // 主控制流程
         // ==========================================
@@ -3322,12 +3432,26 @@
             }
         }
 
-        // ==========================================
+         // ==========================================
         // 啟動！
         // ==========================================
         window.addEventListener("load", () => {
+            // 初始化跳過按鈕
+            initSkipButton();
+
             setTimeout(startExperience, 500);
         });
+        function showPetHome() {
+            // 隱藏跳過按鈕（動畫已完成）
+            hideSkipButton();
+
+            // 切換場景
+            document.getElementById("scene-hatching").classList.remove("active");
+            const homeScene = document.getElementById("scene-pet-home");
+            homeScene.classList.add("active");
+
+            // ... 其他程式碼保持不變 ...
+        }
     </script>
 </body>
 
